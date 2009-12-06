@@ -8,7 +8,7 @@ class RabbitRPC
   def initialize(host, nodename, vhost = '/')
     @vhost = vhost
     @node = "#{nodename}@#{host}".to_sym
-    @svc = BERTRPC::Service.new('localhost', 8821)
+    @svc = BERTRPC::Service.new(host, 8821)
   end
 
   def list_queues
@@ -20,6 +20,6 @@ class RabbitRPC
   end
 end
 
-rabbit = RabbitRPC.new("codeslave", "rabbit")
+rabbit = RabbitRPC.new(`hostname`.chomp, "rabbit")
 # puts rabbit.list_queues.inspect
 puts rabbit.list_exchanges.inspect

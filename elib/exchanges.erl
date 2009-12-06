@@ -3,7 +3,10 @@
 
 list([Node, Vhost]) ->
   Lines = rpc:call(Node, rabbit_exchange, info_all, [Vhost]),
-  Result = lists:map(fun(Line) -> parse_lines_from(Line) end, Lines),
+  Result = case Lines of
+    {badrpc, nodedown} -> {badrpc, nodedown};
+    _AnyOther -> lists:map(fun(Line) -> parse_lines_from(Line) end, Lines)
+  end,
   Result.
 
 parse_lines_from(List) ->
