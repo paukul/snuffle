@@ -11,11 +11,15 @@
 
 -record(state, {sock = undefined}).
 
+% Start/stop Server
 start() -> gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 stop() -> gen_server:call(?MODULE, stop).
 
 process(Sock) ->
   gen_server:cast({global, ?MODULE}, {process, Sock}).
+
+% OTP
+%% gen_server callbacks -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]). start_link() -> gen_server:start_link({local, ?SERVER}, ?MODULE, [], []). init([]) -> {ok, State}.
 
 init([]) ->
   io:format("~p starting~n", [?MODULE]),
@@ -23,10 +27,13 @@ init([]) ->
   spawn(fun() -> loop(Sock) end),
   {ok, #state{sock = Sock}}.
 
-%% gen_server callbacks -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]). start_link() -> gen_server:start_link({local, ?SERVER}, ?MODULE, [], []). init([]) -> {ok, State}.
 handle_call({call, _Module, _Function, _Arguments}, _From, State) ->
   {reply, ok, State}.
-  
+
+handle_info(_Info, _State) -> {noreply, _State}.
+terminate(_Reason, _State) -> ok.
+code_change(_OldVsn, State, _Extra) -> {ok, State}.
+
 handle_cast({process, Sock}, State) ->
   io:format("handling cast~n"),
   Request = #request{sock = Sock},
@@ -34,6 +41,7 @@ handle_cast({process, Sock}, State) ->
   {noreply, State2};
 handle_cast(_Msg, State) -> {noreply, State}.
 
+% Bertrpc
 receive_term(Request, State) ->
   Sock = Request#request.sock,
   case gen_tcp:recv(Sock, 0) of
@@ -57,30 +65,33 @@ process_request(Request, _State) ->
     {cast, _Mod, _Fun, _Args} ->
       gen_tcp:send(Sock, term_to_binary({noreply})),
       ok = gen_tcp:close(Sock);
-    {call, rpc, call, Args} ->
-      Result = do_rpc(Args),
+    {call, rabbitrpc, Query, Args} ->
+      Result = rabbit_rpc(Query, Args),
       io:format("RPC result: ~p~n", [Result]),
-      gen_tcp:send(Sock, term_to_binary(Result));
-    {call, _Mod, _Fun, _args} ->
-      gen_tcp:send(Sock, term_to_binary({reply, not_implemented}));
+      gen_tcp:send(Sock, term_to_binary({reply, Result}));
     _Any ->
+      gen_tcp:send(Sock, term_to_binary({reply, not_implemented})),
       ok
   end.
 
-do_rpc(Args) ->
-  [Node, RPCMod, RPCFun, RPCArgs] = Args,
-  try rpc:call(Node, RPCMod, RPCFun, [RPCArgs]) of
-    AnyResponse -> {reply, AnyResponse}
-  catch
-    AnyError -> {error, AnyError}
+rabbit_rpc(Query, Args) ->
+  case Query of
+    list_queues -> do_list_queues(Args);
+    list_exchanges -> exchanges:list(Args);
+    list_bindings -> bindings;
+    _any -> ok
   end.
+
+do_list_queues(Args) ->
+  Res = do_rpc(Args, rabbit_amqqueue),
+  Res.
+
+do_rpc(Args, Command) ->
+  [Node, Vhost] = Args,
+  rpc:call(Node, Command, info_all, [Vhost]).
 
 loop(LSock) ->
   io:format("Entering loop~n"),
   {ok, Sock} = gen_tcp:accept(LSock),
   rabbit_rpc:process(Sock),
   loop(LSock).
-
-handle_info(_Info, _State) -> {noreply, _State}.
-terminate(_Reason, _State) -> ok.
-code_change(_OldVsn, State, _Extra) -> {ok, State}.

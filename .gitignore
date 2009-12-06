@@ -4,3 +4,4 @@ bin/*
 .DS_Store
 ebin/*
 erl_crash.dump
+*.beam
