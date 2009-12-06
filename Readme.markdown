@@ -3,6 +3,7 @@
 * install bundler if not done so already
 * gem bundle
 * start your rabbitmq server if not started yet
+* compile the erlang stuff: erlc -o ebin elib/*.erl
 * run: erl -pa elib -run rabbit_rpc start -noshell
 * run the example script
 
