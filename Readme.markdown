@@ -1,5 +1,7 @@
 **wip**
 
+at the moment this is more a general bertrpc to erlang:rpc wrapper but i'll abstract that later to expose only the rabbitmq calls
+
 * install bundler if not done so already
 * gem bundle
 * start your rabbitmq server if not started yet
