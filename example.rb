@@ -18,8 +18,18 @@ class RabbitRPC
   def list_exchanges
     @svc.call.rabbitrpc.list_exchanges(@node, @vhost)
   end
+  
+  def list_bindings
+    @svc.call.rabbitrpc.list_bindings(@node, @vhost)
+  end
 end
 
 rabbit = RabbitRPC.new(`hostname`.chomp, "rabbit")
-# puts rabbit.list_queues.inspect
-puts rabbit.list_exchanges.inspect
+puts "Listing Queues:"
+rabbit.list_queues.each { |queue| puts queue.inspect }
+puts
+puts "Listing Exchanges:"
+rabbit.list_exchanges.each { |exchange| puts exchange.inspect }
+puts
+puts "Listing Bindings"
+rabbit.list_bindings.each { |binding| puts binding.inspect }

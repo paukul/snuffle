@@ -76,19 +76,11 @@ process_request(Request, _State) ->
 
 rabbit_rpc(Query, Args) ->
   case Query of
-    list_queues -> do_list_queues(Args);
+    list_queues -> queues:list(Args);
     list_exchanges -> exchanges:list(Args);
-    list_bindings -> bindings;
+    list_bindings -> bindings:list(Args);
     _any -> ok
   end.
-
-do_list_queues(Args) ->
-  Res = do_rpc(Args, rabbit_amqqueue),
-  Res.
-
-do_rpc(Args, Command) ->
-  [Node, Vhost] = Args,
-  rpc:call(Node, Command, info_all, [Vhost]).
 
 loop(LSock) ->
   io:format("Entering loop~n"),
