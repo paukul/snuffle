@@ -79,6 +79,7 @@ rabbit_rpc(Query, Args) ->
     list_queues -> queues:list(Args);
     list_exchanges -> exchanges:list(Args);
     list_bindings -> bindings:list(Args);
+    status -> server:status(Args);
     _any -> ok
   end.
 

@@ -25,6 +25,10 @@ class RabbitRPC
     @svc.call.rabbitrpc.list_bindings(@node, @vhost)
   end
   
+  def status
+    @svc.call.rabbitrpc.status(@node, @vhost)
+  end
+  
   private
   def read_cookie
     cookie_file = File.expand_path("~/.erlang.cookie")
@@ -45,3 +49,5 @@ rabbit = RabbitRPC.new(`hostname`.chomp, "rabbit")
 # puts
 # puts "Listing Bindings"
 # rabbit.list_bindings.each { |binding| puts binding.inspect }
+puts "Listing Status:"
+rabbit.status.inspect
