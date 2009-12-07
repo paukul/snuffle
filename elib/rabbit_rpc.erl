@@ -22,7 +22,7 @@ process(Sock) ->
 %% gen_server callbacks -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]). start_link() -> gen_server:start_link({local, ?SERVER}, ?MODULE, [], []). init([]) -> {ok, State}.
 
 init([]) ->
-  io:format("~p starting~n", [?MODULE]),
+  % io:format("~p starting~n", [?MODULE]),
   {ok, Sock} = gen_tcp:listen(8821, [binary, {packet, 4}, {active, false}, {reuseaddr, true}]),
   spawn(fun() -> loop(Sock) end),
   {ok, #state{sock = Sock}}.
@@ -35,7 +35,7 @@ terminate(_Reason, _State) -> ok.
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 
 handle_cast({process, Sock}, State) ->
-  io:format("handling cast~n"),
+  % io:format("handling cast~n"),
   Request = #request{sock = Sock},
   State2 = receive_term(Request, State),
   {noreply, State2};
@@ -47,7 +47,7 @@ receive_term(Request, State) ->
   case gen_tcp:recv(Sock, 0) of
     {ok, BinaryTerm} ->
       Term = binary_to_term(BinaryTerm),
-      io:format("Term is: ~p~n", [Term]),
+      % io:format("Term is: ~p~n", [Term]),
       case Term of
         _Any ->
           Request2 = Request#request{action = BinaryTerm},
@@ -67,7 +67,7 @@ process_request(Request, _State) ->
       ok = gen_tcp:close(Sock);
     {call, rabbitrpc, Query, Args} ->
       Result = rabbit_rpc(Query, Args),
-      io:format("RPC result: ~p~n", [Result]),
+      % io:format("RPC result: ~p~n", [Result]),
       gen_tcp:send(Sock, term_to_binary({reply, Result}));
     _Any ->
       gen_tcp:send(Sock, term_to_binary({reply, not_implemented})),
@@ -75,15 +75,18 @@ process_request(Request, _State) ->
   end.
 
 rabbit_rpc(Query, Args) ->
+  % io:format("args is ~p~n", [Args]),
+  [Node, Vhost, Cookie] = Args,
+  erlang:set_cookie(node(), Cookie),
   case Query of
-    list_queues -> queues:list(Args);
-    list_exchanges -> exchanges:list(Args);
-    list_bindings -> bindings:list(Args);
+    list_queues -> queues:list(Node, Vhost);
+    list_exchanges -> exchanges:list(Node, Vhost);
+    list_bindings -> bindings:list(Node, Vhost);
     _any -> ok
   end.
 
 loop(LSock) ->
-  io:format("Entering loop~n"),
+  % io:format("Entering loop~n"),
   {ok, Sock} = gen_tcp:accept(LSock),
   rabbit_rpc:process(Sock),
   loop(LSock).

@@ -1,5 +1,5 @@
 -module (exchanges).
--export ([list/1]).
+-export ([list/2]).
 
-list([Node, Vhost]) ->
+list(Node, Vhost) ->
   utils:list_rpc_for(Node, rabbit_exchange, Vhost).

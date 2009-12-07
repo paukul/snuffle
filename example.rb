@@ -5,27 +5,36 @@ require 'bertrpc'
 class RabbitRPC
   attr_reader :host, :nodename
 
-  def initialize(host, nodename, cookie = nil, vhost = '/')
-    @cookie = cookie || read_cookie
-    puts @cookie
-    @vhost = vhost
-    @node = "#{nodename}@#{host}".to_sym
-    @svc = BERTRPC::Service.new(host, 8821)
+  def initialize(options = {})
+    @config = {
+      :cookie => nil,
+      :vhost => '/',
+      :node => 'rabbit@localhost',
+    }.merge(options)
+
+    @config[:cookie] ||= read_cookie.to_sym
+    puts @config[:cookie]
+    @config[:node]   = @config[:node].to_sym
+
+    @svc = BERTRPC::Service.new('localhost', 8821)
   end
 
   def list_queues
-    @svc.call.rabbitrpc.list_queues(@node, @vhost)
+    rabbitrpc(:list_queues)
   end
   
   def list_exchanges
-    @svc.call.rabbitrpc.list_exchanges(@node, @vhost)
+    rabbitrpc(:list_exchanges)
   end
   
   def list_bindings
-    @svc.call.rabbitrpc.list_bindings(@node, @vhost)
+    rabbitrpc(:list_bindings)
   end
   
   private
+  def rabbitrpc(command)
+    @svc.call.rabbitrpc.__send__(command, @config[:node], @config[:vhost], @config[:cookie])
+  end
   def read_cookie
     cookie_file = File.expand_path("~/.erlang.cookie")
     if File.exist?(cookie_file)
@@ -36,12 +45,13 @@ class RabbitRPC
   end
 end
 
-rabbit = RabbitRPC.new(`hostname`.chomp, "rabbit")
-# puts "Listing Queues:"
-# rabbit.list_queues.each { |queue| puts queue.inspect }
-# puts
-# puts "Listing Exchanges:"
-# rabbit.list_exchanges.each { |exchange| puts exchange.inspect }
-# puts
-# puts "Listing Bindings"
-# rabbit.list_bindings.each { |binding| puts binding.inspect }
+hostname = `hostname`.chomp
+rabbit = RabbitRPC.new(:node => "rabbit@#{hostname}")
+puts "Listing Queues:"
+rabbit.list_queues.each { |queue| puts queue.inspect }
+puts
+puts "Listing Exchanges:"
+rabbit.list_exchanges.each { |exchange| puts exchange.inspect }
+puts
+puts "Listing Bindings"
+rabbit.list_bindings.each { |binding| puts binding.inspect }
