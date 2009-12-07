@@ -6,3 +6,4 @@ ebin/*
 erl_crash.dump
 *.beam
 private.rb
+pkg/*
