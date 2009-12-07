@@ -32,7 +32,6 @@ Gem::Specification.new do |s|
      "ext/Makefile",
      "ext/extconf.rb",
      "lib/snuffle.rb",
-     "pkg/snuffle-0.1.0.gem",
      "snuffle.gemspec"
   ]
   s.homepage = %q{http://github.com/paukul/snuffle}

@@ -1,4 +1,5 @@
-require 'snuffles'
+require 'rubygems'
+require 'snuffle'
 
 hostname = `hostname`.chomp
 rabbit = Snuffle.new(:node => "rabbit@#{hostname}")
