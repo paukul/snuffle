@@ -3,16 +3,16 @@
 * install bundler if not done so already
 * gem bundle
 * start your rabbitmq server if not started yet
-* compile the erlang stuff: erlc -o ebin elib/*.erl
-* run: erl -pa ebin -run rabbit_rpc start -noshell -sname rabbit_rpc
-* run the example script
+* run: rake
+* run the example script (you might need to modify some params)
 
 if you don't get a result or "badrpc nodedown" despite your rabbitmq server is running, try to start the rabbit_rpc server without the -sname rabbit_rpc argument.
 
 This thing is far from being finished and more something to get my feet wet with erlang and bertrpc
 
 From the example:
-    rabbit = RabbitRPC.new(`hostname`.chomp, "rabbit")
+    hostname = `hostname`.chomp
+    rabbit = RabbitRPC.new(:node => "rabbit@#{hostname}")
     puts "Listing Queues:"
     rabbit.list_queues.each { |queue| puts queue.inspect }
     puts

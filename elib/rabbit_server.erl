@@ -1,7 +1,7 @@
--module (server).
--export ([status/1]).
+-module (rabbit_server).
+-export ([status/2]).
 
-status([Node, _]) ->
+status(Node, _) ->
   Lines = rpc:call(Node, rabbit, status, []),
   Result = case Lines of
     {badrpc, nodedown} -> {badrpc, nodedown};

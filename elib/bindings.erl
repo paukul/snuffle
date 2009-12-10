@@ -1,7 +1,7 @@
 -module (bindings).
--export ([list/1]).
+-export ([list/2]).
 
-list([Node, Vhost]) ->
+list(Node, Vhost) ->
   Lines = rpc:call(Node, rabbit_exchange, list_bindings, [Vhost]),
   lists:map(fun(Line) -> create_binding_dict(Line) end, Lines).
 
