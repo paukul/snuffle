@@ -82,8 +82,7 @@ rabbit_rpc(Query, Args) ->
     list_queues -> queues:list(Node, Vhost);
     list_exchanges -> exchanges:list(Node, Vhost);
     list_bindings -> bindings:list(Node, Vhost);
-    status -> rabbit_server:status(Args, Vhost);
-    _any -> ok
+    status -> rabbit_server:status(Node, Vhost)
   end.
 
 loop(LSock) ->
